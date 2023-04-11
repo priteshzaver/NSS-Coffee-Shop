@@ -16,8 +16,6 @@ button.addEventListener("click", () => {
                 document.body.insertBefore(newDiv, currentDiv);
             })
         })
-
-
 });
 
 function getAllBeanVarieties() {
@@ -71,5 +69,153 @@ mainContainer.addEventListener("click", clickEvent => {
         }
 
         addBeanToDatabase(dataToSend)    
+    }
+})
+
+
+mainContainer.addEventListener("click", clickEvent => {
+    if (clickEvent.target.id === "edit-form")
+    {
+        getAllBeanVarieties()
+        .then(beans => {
+            mainContainer.innerHTML = editBeanList(beans);
+        })
+    }
+});
+const editBeanList = (beans) => {    
+    let htmlString = ""
+
+    htmlString = beans.map(bean => {
+        return `<div>${bean.name}
+        <button id="edit" value="${bean.id}">Edit</button>
+        </div>`
+    }).join("")
+
+    return htmlString
+}
+
+const FormToEditBean = (bean) => {
+    return `
+            <div class="field">
+                <input id="${bean.id}" type="hidden" name="id" value="${bean.id}">
+            </div>
+            <div class="field">
+                <input id="${bean.name}" type="text" name="name" value="${bean.name}">
+            </div>
+            <div class="field">
+                <input id="${bean.region}" type="text" name="region" value="${bean.region}">
+            </div>
+            <div class="field">
+                <input id="${bean.note}" type="text" name="note" value="${bean.note}">
+            </div>
+            <div class="field">
+                <button id="editBean" type="submit">Submit</button>
+            </div>
+            `
+}
+
+function getSelectedBean(id) {
+    return fetch(`${url}${id}`).then(resp => resp.json());
+}
+
+
+mainContainer.addEventListener("click", clickEvent => {
+    if (clickEvent.target.id == "edit") {
+        const beanId = clickEvent.target.value;
+        getSelectedBean(beanId).then(bean => {
+            mainContainer.innerHTML = FormToEditBean(bean)
+        })
+    }
+})
+function editBean(editBean) {
+    const putOptions = {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(editBean)
+    }
+    return fetch(`${url}${editBean.id}`, putOptions)
+            .then(response => response.json())
+}
+
+mainContainer.addEventListener("click", clickEvent => {
+    if (clickEvent.target.id === "editBean") {
+        const beanId = document.querySelector("input[name='id']").value;
+        const nameEntered = document.querySelector("input[name='name']").value;
+        const regionEntered = document.querySelector("input[name='region']").value;
+        const noteEntered = document.querySelector("input[name='note']").value;
+
+        const beanToEdit = {
+            id: beanId,
+            name: nameEntered,
+            region: regionEntered,
+            note: noteEntered
+        }
+
+        editBean(beanToEdit)
+    }
+})
+
+mainContainer.addEventListener("click", clickEvent => {
+    if (clickEvent.target.id === "delete-form")
+    {
+        getAllBeanVarieties()
+        .then(beans => {
+            mainContainer.innerHTML = deleteBeanList(beans);
+        })
+    }
+});
+const deleteBeanList = (beans) => {    
+    let htmlString = ""
+
+    htmlString = beans.map(bean => {
+        return `<div>${bean.name}
+        <button id="delete" value="${bean.id}">Delete</button>
+        </div>`
+    }).join("")
+
+    return htmlString
+}
+const beanDetailsBeforeDelete = (bean) => {
+    return `
+            <h3>Are you sure you want to delete this bean?</h3>
+            <div>
+            <input id="${bean.id}" type="hidden" name="id" value="${bean.id}">
+            </input>
+            <div id="${bean.name}" name="name" value="${bean.name}">
+            ${bean.name}
+            </div>
+            <div id="${bean.region}" name="region" value="${bean.region}">
+            ${bean.region}
+            </div>
+            <div id="${bean.note}" name="note" value="${bean.note}">
+            ${bean.note}
+            </div>
+            <div class="field">
+                <button id="deleteBean" type="submit">Confirm</button>
+            </div>
+            `
+}
+
+mainContainer.addEventListener("click", clickEvent => {
+    if (clickEvent.target.id == "delete") {
+        const beanId = clickEvent.target.value;
+        getSelectedBean(beanId).then(bean => {
+            mainContainer.innerHTML = beanDetailsBeforeDelete(bean)
+        })
+    }
+})
+
+function deleteBean(beanId) {
+    return fetch(`${url}${beanId}`, {method: "DELETE"})
+            .then(response => response.json())
+}
+
+mainContainer.addEventListener("click", clickEvent => {
+    if (clickEvent.target.id === "deleteBean") {
+        const beanId = document.querySelector("input[name='id']").value;
+
+        deleteBean(beanId)
     }
 })
